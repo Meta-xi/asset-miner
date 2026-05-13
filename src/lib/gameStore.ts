@@ -1,11 +1,47 @@
-// Simple in-memory data store for the mining game
-// In production, this would be replaced with a real database
+import { sql } from '@vercel/postgres';
+
+// Database schema
+const initSchema = async () => {
+  await sql`
+    CREATE TABLE IF NOT EXISTS users (
+      id VARCHAR(255) PRIMARY KEY,
+      username VARCHAR(255) NOT NULL,
+      phone VARCHAR(50) UNIQUE NOT NULL,
+      quc DECIMAL(20, 2) DEFAULT 100,
+      minerales DECIMAL(20, 2) DEFAULT 0,
+      referral_code VARCHAR(50) UNIQUE NOT NULL,
+      referred_by VARCHAR(50),
+      referral_earnings DECIMAL(20, 2) DEFAULT 0,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+    
+    CREATE TABLE IF NOT EXISTS user_mines (
+      id VARCHAR(255) PRIMARY KEY,
+      user_id VARCHAR(255) REFERENCES users(id),
+      mine_id VARCHAR(50) NOT NULL,
+      name VARCHAR(100) NOT NULL,
+      level INTEGER DEFAULT 1,
+      production_per_second DECIMAL(20, 4) DEFAULT 0,
+      miner_groups INTEGER DEFAULT 0,
+      last_update TIMESTAMP DEFAULT NOW()
+    );
+    
+    CREATE TABLE IF NOT EXISTS user_miners (
+      id VARCHAR(255) PRIMARY KEY,
+      user_id VARCHAR(255) REFERENCES users(id),
+      name VARCHAR(100) NOT NULL,
+      type VARCHAR(50) NOT NULL,
+      production DECIMAL(20, 4) DEFAULT 0,
+      cost DECIMAL(20, 2) DEFAULT 0
+    );
+  `;
+};
 
 // User type
 export interface User {
   id: string;
   username: string;
-  email: string;
+  phone: string;
   quc: number;
   minerales: number;
   referralCode: string;
@@ -21,8 +57,8 @@ export interface Miner {
   id: string;
   name: string;
   type: 'basic' | 'intermediate' | 'professional' | 'elite' | 'diamond';
-  production: number; // minerals per day
-  cost: number; // cost in QUC
+  production: number;
+  cost: number;
   image: string;
 }
 
@@ -65,10 +101,7 @@ export const MINER_COSTS: Record<string, number> = {
 };
 
 // Mineral sell price
-export const MINERAL_PRICE = 0.10; // QUC per mineral
-
-// In-memory storage
-const users: Map<string, User> = new Map();
+export const MINERAL_PRICE = 0.10;
 
 // Generate unique ID
 function generateId(): string {
@@ -80,18 +113,21 @@ function generateReferralCode(): string {
   return Math.random().toString(36).substr(2, 8).toUpperCase();
 }
 
-// Get or create user
-export function getOrCreateUser(username: string, email: string, referralCode?: string): User {
-  // Check if user exists by email
-  let user = Array.from(users.values()).find(u => u.email === email);
+// In-memory storage (fallback when no database)
+const users: Map<string, User> = new Map();
+
+// Get or create user (by phone)
+export function getOrCreateUser(username: string, phone: string, referralCode?: string): User {
+  // Check if user exists by phone
+  let user = Array.from(users.values()).find(u => u.phone === phone);
   
   if (!user) {
     // Create new user
     user = {
       id: generateId(),
       username,
-      email,
-      quc: 100, // Starting bonus
+      phone,
+      quc: 100,
       minerales: 0,
       referralCode: generateReferralCode(),
       referredBy: referralCode || null,
@@ -123,6 +159,11 @@ export function getUser(id: string): User | undefined {
   return users.get(id);
 }
 
+// Get user by phone
+export function getUserByPhone(phone: string): User | undefined {
+  return Array.from(users.values()).find(u => u.phone === phone);
+}
+
 // Get user by referral code
 export function getUserByReferralCode(code: string): User | undefined {
   return Array.from(users.values()).find(u => u.referralCode === code);
@@ -140,10 +181,8 @@ export function buyMine(userId: string, mineType: string): { success: boolean; m
     return { success: false, message: 'QUC insuficiente' };
   }
   
-  // Deduct cost
   user.quc -= cost;
   
-  // Add new mine
   const mineInfo = MINE_TYPES.find(m => m.mineId === mineType);
   if (!mineInfo) return { success: false, message: 'Mina no encontrada' };
   
@@ -172,17 +211,15 @@ export function buyMiner(userId: string, minerType: string): { success: boolean;
     return { success: false, message: 'QUC insuficiente' };
   }
   
-  // Deduct cost
   user.quc -= cost;
   
-  // Add new miner
   const miner: Miner = {
     id: generateId(),
     name: `Minero ${minerType.charAt(0).toUpperCase() + minerType.slice(1)}`,
     type: minerType as any,
-    production: cost / 10, // production based on cost
+    production: cost / 10,
     cost,
-    image: `👷`,
+    image: '👷',
   };
   
   user.miners.push(miner);
@@ -198,7 +235,6 @@ export function sellMinerales(userId: string, amount: number): { success: boolea
   if (amount <= 0) return { success: false, message: 'Cantidad inválida' };
   if (user.minerales < amount) return { success: false, message: 'Minerales insuficientes' };
   
-  // Deduct minerals and add QUC
   user.minerales -= amount;
   user.quc += amount * MINERAL_PRICE;
   
@@ -215,16 +251,15 @@ export function upgradeMine(userId: string, mineId: string, minerGroups: number)
   
   if (minerGroups <= 0) return { success: false, message: 'Cantidad inválida' };
   
-  const costPerGroup = 10 * mine.level; // Cost increases with level
+  const costPerGroup = 10 * mine.level;
   const totalCost = minerGroups * costPerGroup;
   
   if (user.quc < totalCost) return { success: false, message: 'QUC insuficiente' };
   
-  // Deduct cost and add miner groups
   user.quc -= totalCost;
   mine.minerGroups += minerGroups;
-  mine.level += Math.floor(minerGroups / 3); // Every 3 groups = 1 level
-  mine.productionPerSecond *= (1 + 0.1 * minerGroups); // 10% per group
+  mine.level += Math.floor(minerGroups / 3);
+  mine.productionPerSecond *= (1 + 0.1 * minerGroups);
   
   return { success: true, message: `Mina mejorada! Nuevo nivel: ${mine.level}` };
 }
@@ -236,15 +271,13 @@ export function calculateProduction(userId: string): number {
   
   let totalProduction = 0;
   
-  // Mines production
   for (const mine of user.mines) {
     const timePassed = (Date.now() - mine.lastUpdate) / 1000;
     totalProduction += mine.productionPerSecond * timePassed;
   }
   
-  // Miners production (bonus)
   for (const miner of user.miners) {
-    const timePassed = (Date.now() - user.createdAt) / 1000 / 86400; // days
+    const timePassed = (Date.now() - user.createdAt) / 1000 / 86400;
     totalProduction += miner.production * timePassed;
   }
   
@@ -259,7 +292,6 @@ export function updateMinerales(userId: string): void {
   const production = calculateProduction(userId);
   user.minerales += production;
   
-  // Update last update times
   for (const mine of user.mines) {
     mine.lastUpdate = Date.now();
   }
@@ -272,7 +304,6 @@ export function deposit(userId: string, amount: number): { success: boolean; mes
   
   if (amount <= 0) return { success: false, message: 'Cantidad inválida' };
   
-  // In real app, this would integrate with payment processor
   user.quc += amount;
   
   return { success: true, message: `Depósito de ${amount} QUC realizado` };
@@ -286,7 +317,6 @@ export function withdraw(userId: string, amount: number): { success: boolean; me
   if (amount <= 0) return { success: false, message: 'Cantidad inválida' };
   if (user.quc < amount) return { success: false, message: 'QUC insuficiente' };
   
-  // In real app, this would integrate with payment processor
   user.quc -= amount;
   
   return { success: true, message: `Retiro de ${amount} QUC procesado` };

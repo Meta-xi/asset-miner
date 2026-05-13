@@ -250,7 +250,7 @@ export default function Home() {
 
 function RegisterForm({ onRegister }: { onRegister: () => void }) {
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -265,7 +265,7 @@ function RegisterForm({ onRegister }: { onRegister: () => void }) {
         body: JSON.stringify({ 
           action: 'register', 
           username, 
-          email, 
+          phone, 
           referralCode: referralCode || undefined 
         }),
       });
@@ -306,11 +306,11 @@ function RegisterForm({ onRegister }: { onRegister: () => void }) {
         </div>
 
         <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151' }}>Email</label>
+          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151' }}>Teléfono</label>
           <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
             required
             style={{
               width: '100%',
@@ -318,7 +318,7 @@ function RegisterForm({ onRegister }: { onRegister: () => void }) {
               borderRadius: '0.5rem',
               border: '1px solid #D1D5DB',
             }}
-            placeholder="tu@email.com"
+            placeholder="+1234567890"
           />
         </div>
 

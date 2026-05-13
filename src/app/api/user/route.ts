@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrCreateUser, getUser, getUserByReferralCode, buyMine, buyMiner, sellMinerales, upgradeMine, updateMinerales, deposit, withdraw, MINE_COSTS, MINER_COSTS } from '@/lib/gameStore';
+import { getOrCreateUser, getUser, getUserByReferralCode, getUserByPhone, buyMine, buyMiner, sellMinerales, upgradeMine, updateMinerales, deposit, withdraw, MINE_COSTS, MINER_COSTS } from '@/lib/gameStore';
 
 // GET - Get user data
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const userId = searchParams.get('userId');
   const referralCode = searchParams.get('referralCode');
+  const phone = searchParams.get('phone');
 
   // Get user by ID
   if (userId) {
@@ -15,6 +16,16 @@ export async function GET(request: NextRequest) {
     }
     // Update minerals from production
     updateMinerales(userId);
+    return NextResponse.json(user);
+  }
+
+  // Get user by phone
+  if (phone) {
+    const user = getUserByPhone(phone);
+    if (!user) {
+      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+    }
+    updateMinerales(user.id);
     return NextResponse.json(user);
   }
 
@@ -33,15 +44,27 @@ export async function GET(request: NextRequest) {
 // POST - Create user or perform actions
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { action, userId, username, email, referralCode, mineType, minerType, amount, mineId, minerGroups } = body;
+  const { action, userId, username, phone, referralCode, mineType, minerType, amount, mineId, minerGroups } = body;
 
   switch (action) {
     case 'register': {
-      // Register new user
-      if (!username || !email) {
-        return NextResponse.json({ error: '用户名和邮箱必填' }, { status: 400 });
+      // Register new user with phone number
+      if (!username || !phone) {
+        return NextResponse.json({ error: 'Nombre de usuario y teléfono son requeridos' }, { status: 400 });
       }
-      const user = getOrCreateUser(username, email, referralCode);
+      const user = getOrCreateUser(username, phone, referralCode);
+      return NextResponse.json(user);
+    }
+
+    case 'login': {
+      // Login with phone number
+      if (!phone) {
+        return NextResponse.json({ error: 'Teléfono es requerido' }, { status: 400 });
+      }
+      const user = getUserByPhone(phone);
+      if (!user) {
+        return NextResponse.json({ error: 'Usuario no encontrado. Regístrate primero.' }, { status: 404 });
+      }
       return NextResponse.json(user);
     }
 
