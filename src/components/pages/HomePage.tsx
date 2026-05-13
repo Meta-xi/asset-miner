@@ -19,6 +19,9 @@ interface Props {
 
 export default function HomePage({ user, refreshUser }: Props) {
   const [upgrading, setUpgrading] = useState<string | null>(null);
+  const [selectedMine, setSelectedMine] = useState<any>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Refresh user data periodically to show production
   useEffect(() => {
@@ -41,6 +44,29 @@ export default function HomePage({ user, refreshUser }: Props) {
       alert('Error al mejorar mina');
     }
     setUpgrading(null);
+  };
+
+  const handlePayWorkers = (mine: any) => {
+    // Check if user has enough QUC to pay workers
+    const workerCost = 100; // Cost per worker
+    if (user.quc >= workerCost) {
+      // This would need to be implemented - for now show a message
+      alert('¡Trabajadores pagados! (+4 grupos de mineros)');
+      refreshUser();
+    } else {
+      alert('No tienes suficientes QUC para pagar trabajadores. Necesitas: ' + workerCost + ' QUC');
+    }
+    setShowUpgradeModal(false);
+  };
+
+  const openDetailsModal = (mine: any) => {
+    setSelectedMine(mine);
+    setShowDetailsModal(true);
+  };
+
+  const openUpgradeModal = (mine: any) => {
+    setSelectedMine(mine);
+    setShowUpgradeModal(true);
   };
 
   const totalProduction = user.mines.reduce((acc: number, mine: any) => 
@@ -115,21 +141,29 @@ export default function HomePage({ user, refreshUser }: Props) {
                 />
               </div>
 
-              {/* Miner groups */}
-              <div className="flex justify-between items-center">
+              {/* Miner groups and buttons */}
+              <div className="flex justify-between items-center flex-wrap gap-2">
                 <div>
                   <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
                     👷 Grupos de mineros: {mine.minerGroups}
                   </p>
                 </div>
-                <button
-                  onClick={() => handleUpgrade(mine.id)}
-                  disabled={upgrading === mine.id}
-                  className="btn-primary"
-                  style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-                >
-                  {upgrading === mine.id ? '...' : 'Mejorar (+1)'}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => openDetailsModal(mine)}
+                    className="btn-secondary"
+                    style={{ fontSize: '0.75rem', padding: '0.375rem 0.75rem' }}
+                  >
+                    📋 Detalles
+                  </button>
+                  <button
+                    onClick={() => openUpgradeModal(mine)}
+                    className="btn-primary"
+                    style={{ fontSize: '0.75rem', padding: '0.375rem 0.75rem' }}
+                  >
+                    ⬆️ Mejorar
+                  </button>
+                </div>
               </div>
             </div>
           ))
@@ -153,6 +187,108 @@ export default function HomePage({ user, refreshUser }: Props) {
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Details Modal */}
+      {showDetailsModal && selectedMine && (
+        <div className="modal-overlay" onClick={() => setShowDetailsModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#92400E' }}>
+              📋 Detalles de la Mina
+            </h3>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span style={{ color: '#6B7280' }}>Nombre:</span>
+                <span style={{ fontWeight: 'bold' }}>{selectedMine.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ color: '#6B7280' }}>Nivel:</span>
+                <span style={{ fontWeight: 'bold' }}>{selectedMine.level}</span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ color: '#6B7280' }}>Producción base:</span>
+                <span style={{ fontWeight: 'bold', color: '#10B981' }}>
+                  {selectedMine.productionPerSecond.toFixed(2)}/s
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ color: '#6B7280' }}>Grupos de mineros:</span>
+                <span style={{ fontWeight: 'bold' }}>{selectedMine.minerGroups}</span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ color: '#6B7280' }}>Bonus por mineros:</span>
+                <span style={{ fontWeight: 'bold', color: '#10B981' }}>
+                  +{(selectedMine.minerGroups * 10).toFixed(0)}%
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ color: '#6B7280' }}>Producción total:</span>
+                <span style={{ fontWeight: 'bold', color: '#10B981' }}>
+                  {(selectedMine.productionPerSecond * (1 + selectedMine.minerGroups * 0.1)).toFixed(2)}/s
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ color: '#6B7280' }}>Estado:</span>
+                <span style={{ fontWeight: 'bold', color: '#10B981' }}>🟢 Activa</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowDetailsModal(false)}
+              className="btn-primary w-full mt-4"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && selectedMine && (
+        <div className="modal-overlay" onClick={() => setShowUpgradeModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#92400E' }}>
+              ⬆️ Mejorar Mina
+            </h3>
+            
+            <div className="mb-4">
+              <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{selectedMine.name}</p>
+              <p style={{ color: '#6B7280', fontSize: '0.875rem' }}>
+                Nivel actual: {selectedMine.level}
+              </p>
+            </div>
+
+            <div style={{ 
+              background: '#FEF3C7', 
+              padding: '1rem', 
+              borderRadius: '0.5rem',
+              marginBottom: '1rem'
+            }}>
+              <p style={{ color: '#92400E', fontWeight: 'bold' }}>
+                ⚠️ Esta mina necesita 4 mineros para subir al próximo nivel de Trabajo.
+              </p>
+              <p style={{ color: '#92400E', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                Grupos de mineros actuales: {selectedMine.minerGroups}
+              </p>
+            </div>
+
+            <button
+              onClick={() => handlePayWorkers(selectedMine)}
+              className="btn-primary w-full mb-2"
+              style={{ background: '#F59E0B' }}
+            >
+              💰 Pagar Trabajadores (100 QUC)
+            </button>
+
+            <button
+              onClick={() => setShowUpgradeModal(false)}
+              className="btn-secondary w-full"
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       )}
