@@ -280,6 +280,29 @@ function RegisterForm({ onRegister }: { onRegister: () => void }) {
     setLoading(false);
   };
 
+  const handleSkip = async () => {
+    setLoading(true);
+    try {
+      // Create demo user directly via API
+      const res = await fetch('/api/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'register', 
+          username: 'Demo User', 
+          phone: 'demo123' 
+        }),
+      });
+      
+      if (res.ok) {
+        onRegister();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="bg-white p-6 rounded-xl w-full max-w-md">
       <div className="text-center mb-6">
@@ -353,6 +376,25 @@ function RegisterForm({ onRegister }: { onRegister: () => void }) {
           }}
         >
           {loading ? 'Creando...' : '¡Empezar a minar!'}
+        </button>
+        
+        <button
+          type="button"
+          onClick={handleSkip}
+          disabled={loading}
+          style={{
+            width: '100%',
+            background: '#6B7280',
+            color: 'white',
+            padding: '0.75rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            fontWeight: '600',
+            cursor: 'pointer',
+            marginTop: '0.5rem'
+          }}
+        >
+          {loading ? '...' : 'Saltar'}
         </button>
       </form>
 
