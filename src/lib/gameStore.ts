@@ -73,8 +73,12 @@ export interface UserMine {
   lastUpdate: number;
 }
 
-// Mine types available in store
+// Mine types available in store (including user's custom mines)
 export const MINE_TYPES: Omit<UserMine, 'id' | 'lastUpdate'>[] = [
+  { mineId: 'oro', name: 'Mina de Oro', level: 1, productionPerSecond: 1, minerGroups: 0 },
+  { mineId: 'carbon', name: 'Mina de Carbón', level: 1, productionPerSecond: 2.5, minerGroups: 0 },
+  { mineId: 'rubi', name: 'Mina Rubí', level: 1, productionPerSecond: 5, minerGroups: 0 },
+  { mineId: 'esmeralda', name: 'Mina Esmeralda', level: 1, productionPerSecond: 10, minerGroups: 0 },
   { mineId: 'basic', name: 'Mina Básica', level: 1, productionPerSecond: 0.5, minerGroups: 0 },
   { mineId: 'intermediate', name: 'Mina Intermedia', level: 1, productionPerSecond: 3, minerGroups: 0 },
   { mineId: 'professional', name: 'Mina Profesional', level: 1, productionPerSecond: 7, minerGroups: 0 },
@@ -84,6 +88,10 @@ export const MINE_TYPES: Omit<UserMine, 'id' | 'lastUpdate'>[] = [
 
 // Mine costs
 export const MINE_COSTS: Record<string, number> = {
+  oro: 100,
+  carbon: 200,
+  rubi: 500,
+  esmeralda: 1000,
   basic: 50,
   intermediate: 250,
   professional: 600,
@@ -133,19 +141,19 @@ function ensureDemoUser() {
       mines: [
         {
           id: 'mine-1',
-          mineId: 'basic',
-          name: 'Mina Básica',
+          mineId: 'oro',
+          name: 'Mina de Oro',
           level: 1,
-          productionPerSecond: 0.5,
+          productionPerSecond: 1,
           minerGroups: 0,
           lastUpdate: Date.now(),
         },
         {
           id: 'mine-2',
-          mineId: 'intermediate',
-          name: 'Mina Intermedia',
+          mineId: 'carbon',
+          name: 'Mina de Carbón',
           level: 1,
-          productionPerSecond: 3,
+          productionPerSecond: 2.5,
           minerGroups: 0,
           lastUpdate: Date.now(),
         },
@@ -184,13 +192,13 @@ export function getOrCreateUser(username: string, phone: string, referralCode?: 
       createdAt: Date.now(),
     };
     
-    // Add starter mine
+    // Add starter mine (Mina de Oro)
     user.mines.push({
       id: generateId(),
-      mineId: 'basic',
-      name: 'Mina Básica',
+      mineId: 'oro',
+      name: 'Mina de Oro',
       level: 1,
-      productionPerSecond: 0.5,
+      productionPerSecond: 1,
       minerGroups: 0,
       lastUpdate: Date.now(),
     });
