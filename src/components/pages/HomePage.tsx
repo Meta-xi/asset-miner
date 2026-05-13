@@ -35,23 +35,37 @@ function MineEarnings({ mine }: { mine: any }) {
 
   return (
     <div style={{ 
-      background: 'linear-gradient(135deg, #EDE9FE 0%, #C4B5FD 100%)',
-      padding: '0.5rem 0.75rem',
-      borderRadius: '0.5rem',
       display: 'inline-flex',
       alignItems: 'center',
       gap: '0.5rem'
     }}>
-      <span style={{ fontSize: '1rem' }}>💎</span>
+      <span style={{ fontSize: '1.5rem' }}>💎</span>
       <span style={{ 
         fontWeight: 'bold', 
-        color: '#7C3AED',
+        color: '#8B5CF6',
         fontFamily: 'monospace',
-        fontSize: '1.125rem'
+        fontSize: '1.25rem'
       }}>
         +{earnings.toFixed(2)}
       </span>
-      <span style={{ fontSize: '0.75rem', color: '#7C3AED' }}>minerales</span>
+    </div>
+  );
+}
+
+// Placeholder for mine image - will be replaced with actual images
+function MineImage({ mineName }: { mineName: string }) {
+  return (
+    <div style={{
+      width: '100%',
+      height: '120px',
+      background: 'linear-gradient(135deg, #374151 0%, #1F2937 100%)',
+      borderRadius: '0.75rem',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: '0.75rem'
+    }}>
+      <span style={{ fontSize: '3rem' }}>⛏️</span>
     </div>
   );
 }
@@ -164,56 +178,41 @@ export default function HomePage({ user, refreshUser }: Props) {
           </div>
         ) : (
           user.mines.map((mine: any) => (
-            <div key={mine.id} className="mine-card">
-              <div className="flex justify-between items-start mb-2">
+            <div key={mine.id} className="mine-card-new">
+              {/* 1. Foto de la mina */}
+              <MineImage mineName={mine.name} />
+              
+              {/* 2. Nombre (Mina de ***) */}
+              <div className="flex justify-between items-center mb-3">
                 <div>
-                  <h3 style={{ fontWeight: 'bold', color: '#92400E' }}>{mine.name}</h3>
+                  <h3 style={{ fontWeight: 'bold', color: '#1F2937', fontSize: '1.125rem' }}>
+                    Mina de {mine.name}
+                  </h3>
                   <span className="mine-card-level">Nivel {mine.level}</span>
-                </div>
-                <div className="text-right">
-                  <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>Producción base</p>
-                  <p style={{ fontWeight: 'bold', color: '#10B981' }}>
-                    {mine.productionPerSecond.toFixed(2)}/s
-                  </p>
                 </div>
               </div>
 
-              {/* Real-time earnings display */}
+              {/* 3. Icono del mineral y ganancia en minerales subiendo cada segundo */}
               <div className="mb-3">
                 <MineEarnings mine={mine} />
               </div>
 
-              {/* Progress bar showing production */}
-              <div className="progress-bar mb-3">
-                <div 
-                  className="progress-bar-fill" 
-                  style={{ width: `${Math.min(100, (mine.productionPerSecond / 50) * 100)}%` }}
-                />
-              </div>
-
-              {/* Miner groups and buttons */}
-              <div className="flex justify-between items-center flex-wrap gap-2">
-                <div>
-                  <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-                    👷 Grupos de mineros: {mine.minerGroups}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => openDetailsModal(mine)}
-                    className="btn-secondary"
-                    style={{ fontSize: '0.75rem', padding: '0.375rem 0.75rem' }}
-                  >
-                    📋 Detalles
-                  </button>
-                  <button
-                    onClick={() => openUpgradeModal(mine)}
-                    className="btn-primary"
-                    style={{ fontSize: '0.75rem', padding: '0.375rem 0.75rem' }}
-                  >
-                    ⬆️ Mejorar
-                  </button>
-                </div>
+              {/* 4. Botón Detalles y 5. Botón Mejorar */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => openDetailsModal(mine)}
+                  className="btn-details"
+                  style={{ flex: 1 }}
+                >
+                  📋 Detalles
+                </button>
+                <button
+                  onClick={() => openUpgradeModal(mine)}
+                  className="btn-upgrade"
+                  style={{ flex: 1 }}
+                >
+                  ⬆️ Mejorar
+                </button>
               </div>
             </div>
           ))
@@ -252,7 +251,7 @@ export default function HomePage({ user, refreshUser }: Props) {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span style={{ color: '#6B7280' }}>Nombre:</span>
-                <span style={{ fontWeight: 'bold' }}>{selectedMine.name}</span>
+                <span style={{ fontWeight: 'bold' }}>Mina de {selectedMine.name}</span>
               </div>
               <div className="flex justify-between">
                 <span style={{ color: '#6B7280' }}>Nivel:</span>
@@ -296,7 +295,7 @@ export default function HomePage({ user, refreshUser }: Props) {
         </div>
       )}
 
-      {/* Upgrade Modal */}
+      {/* Upgrade Modal - Improve with Workers */}
       {showUpgradeModal && selectedMine && (
         <div className="modal-overlay" onClick={() => setShowUpgradeModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -305,7 +304,7 @@ export default function HomePage({ user, refreshUser }: Props) {
             </h3>
             
             <div className="mb-4">
-              <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{selectedMine.name}</p>
+              <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>Mina de {selectedMine.name}</p>
               <p style={{ color: '#6B7280', fontSize: '0.875rem' }}>
                 Nivel actual: {selectedMine.level}
               </p>
