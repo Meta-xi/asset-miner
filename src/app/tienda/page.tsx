@@ -10,6 +10,8 @@ interface User {
   phone: string;
   quc: number;
   minerales: number;
+  mines?: any[];
+  miners?: any[];
 }
 
 export default function Tienda() {
