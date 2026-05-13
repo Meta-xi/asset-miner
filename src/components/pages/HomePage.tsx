@@ -17,9 +17,20 @@ interface Props {
   refreshUser: () => void;
 }
 
+// Get mineral icon based on mine name
+function getMineralIcon(mineName: string): string {
+  const name = mineName.toLowerCase();
+  if (name.includes('oro')) return '/images/minerals/oro.webp';
+  if (name.includes('carbón') || name.includes('carbon')) return '/images/minerals/carbon.webp';
+  if (name.includes('rubí') || name.includes('rubi')) return '/images/minerals/rubi.webp';
+  if (name.includes('esmeralda')) return '💚'; // Emoji fallback until user sends the image
+  return '💎';
+}
+
 // Component for real-time earnings display per mine
 function MineEarnings({ mine }: { mine: any }) {
   const [earnings, setEarnings] = useState(0);
+  const mineralIcon = getMineralIcon(mine.name);
   
   useEffect(() => {
     // Calculate production per second for this mine
@@ -33,13 +44,23 @@ function MineEarnings({ mine }: { mine: any }) {
     return () => clearInterval(interval);
   }, [mine.productionPerSecond, mine.minerGroups]);
 
+  const isEmoji = mineralIcon.length === 2; // Check if it's an emoji (2 chars)
+
   return (
     <div style={{ 
       display: 'inline-flex',
       alignItems: 'center',
       gap: '0.5rem'
     }}>
-      <span style={{ fontSize: '1.5rem' }}>💎</span>
+      {isEmoji ? (
+        <span style={{ fontSize: '1.5rem' }}>{mineralIcon}</span>
+      ) : (
+        <img 
+          src={mineralIcon} 
+          alt="Mineral" 
+          style={{ width: '32px', height: '32px', objectFit: 'contain' }}
+        />
+      )}
       <span style={{ 
         fontWeight: 'bold', 
         color: '#8B5CF6',
@@ -52,8 +73,43 @@ function MineEarnings({ mine }: { mine: any }) {
   );
 }
 
-// Placeholder for mine image - will be replaced with actual images
+// Get mine image based on mine name
+function getMineImage(mineName: string): string | null {
+  const name = mineName.toLowerCase();
+  if (name.includes('oro')) return '/images/mines/oro.webp';
+  if (name.includes('carbón') || name.includes('carbon')) return '/images/mines/carbon.webp';
+  if (name.includes('rubí') || name.includes('rubi')) return '/images/mines/rubi.webp';
+  if (name.includes('esmeralda')) return '/images/mines/esmeralda.webp';
+  return null;
+}
+
+// Mine image component with custom images
 function MineImage({ mineName }: { mineName: string }) {
+  const imagePath = getMineImage(mineName);
+  
+  if (imagePath) {
+    return (
+      <div style={{
+        width: '100%',
+        height: '140px',
+        borderRadius: '0.75rem',
+        marginBottom: '0.75rem',
+        overflow: 'hidden'
+      }}>
+        <img 
+          src={imagePath} 
+          alt={`Mina de ${mineName}`}
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'cover' 
+          }}
+        />
+      </div>
+    );
+  }
+  
+  // Fallback placeholder
   return (
     <div style={{
       width: '100%',
