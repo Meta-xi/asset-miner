@@ -12,9 +12,52 @@ interface User {
   miners: any[];
 }
 
+interface MineWithEarnings extends any {
+  earnings: number;
+}
+
 interface Props {
   user: User;
   refreshUser: () => void;
+}
+
+// Component for real-time earnings display per mine
+function MineEarnings({ mine }: { mine: any }) {
+  const [earnings, setEarnings] = useState(0);
+  
+  useEffect(() => {
+    // Calculate production per second for this mine
+    const productionPerSecond = mine.productionPerSecond * (1 + mine.minerGroups * 0.1);
+    
+    // Update every 100ms for smooth animation
+    const interval = setInterval(() => {
+      setEarnings(prev => prev + (productionPerSecond / 10));
+    }, 100);
+    
+    return () => clearInterval(interval);
+  }, [mine.productionPerSecond, mine.minerGroups]);
+
+  return (
+    <div style={{ 
+      background: 'linear-gradient(135deg, #EDE9FE 0%, #C4B5FD 100%)',
+      padding: '0.5rem 0.75rem',
+      borderRadius: '0.5rem',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '0.5rem'
+    }}>
+      <span style={{ fontSize: '1rem' }}>💎</span>
+      <span style={{ 
+        fontWeight: 'bold', 
+        color: '#7C3AED',
+        fontFamily: 'monospace',
+        fontSize: '1.125rem'
+      }}>
+        +{earnings.toFixed(2)}
+      </span>
+      <span style={{ fontSize: '0.75rem', color: '#7C3AED' }}>minerales</span>
+    </div>
+  );
 }
 
 export default function HomePage({ user, refreshUser }: Props) {
@@ -22,6 +65,7 @@ export default function HomePage({ user, refreshUser }: Props) {
   const [selectedMine, setSelectedMine] = useState<any>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [localMinerales, setLocalMinerales] = useState(user.minerales);
 
   // Refresh user data periodically to show production
   useEffect(() => {
@@ -31,6 +75,11 @@ export default function HomePage({ user, refreshUser }: Props) {
     
     return () => clearInterval(interval);
   }, [refreshUser]);
+
+  // Sync local state with userminerales
+  useEffect(() => {
+    setLocalMinerales(user.minerales);
+  }, [user.minerales]);
 
   const handleUpgrade = async (mineId: string) => {
     setUpgrading(mineId);
@@ -91,7 +140,7 @@ export default function HomePage({ user, refreshUser }: Props) {
           <div className="text-center p-3 bg-white rounded-lg">
             <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>Minerales</p>
             <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8B5CF6' }}>
-              {user.minerales.toFixed(2)}
+              {localMinerales.toFixed(2)}
             </p>
           </div>
         </div>
@@ -120,17 +169,22 @@ export default function HomePage({ user, refreshUser }: Props) {
         ) : (
           user.mines.map((mine: any) => (
             <div key={mine.id} className="mine-card">
-              <div className="flex justify-between items-start mb-3">
+              <div className="flex justify-between items-start mb-2">
                 <div>
                   <h3 style={{ fontWeight: 'bold', color: '#92400E' }}>{mine.name}</h3>
                   <span className="mine-card-level">Nivel {mine.level}</span>
                 </div>
                 <div className="text-right">
-                  <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>Producción</p>
+                  <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>Producción base</p>
                   <p style={{ fontWeight: 'bold', color: '#10B981' }}>
                     {mine.productionPerSecond.toFixed(2)}/s
                   </p>
                 </div>
+              </div>
+
+              {/* Real-time earnings display */}
+              <div className="mb-3">
+                <MineEarnings mine={mine} />
               </div>
 
               {/* Progress bar showing production */}
