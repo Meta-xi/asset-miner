@@ -23,7 +23,7 @@ function getMineralIcon(mineName: string): string {
   if (name.includes('oro')) return '/images/minerals/oro.webp';
   if (name.includes('carbón') || name.includes('carbon')) return '/images/minerals/carbon.webp';
   if (name.includes('rubí') || name.includes('rubi')) return '/images/minerals/rubi.webp';
-  if (name.includes('esmeralda')) return '💚'; // Emoji fallback until user sends the image
+  if (name.includes('esmeralda')) return '/images/minerals/esmeralda.webp';
   return '💎';
 }
 
