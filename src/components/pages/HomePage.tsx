@@ -12,10 +12,6 @@ interface User {
   miners: any[];
 }
 
-interface MineWithEarnings extends any {
-  earnings: number;
-}
-
 interface Props {
   user: User;
   refreshUser: () => void;
