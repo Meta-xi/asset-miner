@@ -4,11 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const DEMO_USER_ID = 'demo-user-123';
-
 interface User {
   username: string;
-  email: string;
+  phone: string;
   quc: number;
   minerales: number;
   referralCode: string;
@@ -25,16 +23,25 @@ export default function Perfil() {
   const pathname = usePathname();
 
   useEffect(() => {
-    fetch(`/api/user?userId=${DEMO_USER_ID}`).then(res => res.json()).then(data => { setUser(data); setLoading(false); });
+    const savedUser = localStorage.getItem('assetMinerUser');
+    if (savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+      } catch (e) {
+        localStorage.removeItem('assetMinerUser');
+      }
+    }
+    setLoading(false);
   }, []);
 
   const formatDate = (timestamp: number) => new Date(timestamp).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
   if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:'#FEFCE8'}}><p>Cargando...</p></div>;
 
-  const totalMines = user?.mines.length || 0;
-  const totalMiners = user?.miners.length || 0;
-  const totalProduction = user?.mines.reduce((acc: number, mine: any) => acc + (mine.productionPerSecond * (1 + mine.minerGroups * 0.1)), 0) || 0;
+  const totalMines = user?.mines?.length || 0;
+  const totalMiners = user?.miners?.length || 0;
+  const totalProduction = user?.mines?.reduce((acc: number, mine: any) => acc + (mine.productionPerSecond * (1 + mine.minerGroups * 0.1)), 0) || 0;
 
   return (
     <div className="min-h-screen pb-20" style={{ background: '#FEFCE8' }}>
@@ -43,8 +50,8 @@ export default function Perfil() {
         
         <div style={{ textAlign: 'center', padding: '1.5rem', background: 'white', borderRadius: '1rem' }}>
           <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', background: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', fontSize: '2rem' }}>👤</div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#92400E' }}>{user?.username}</h2>
-          <p style={{ color: '#92400E' }}>{user?.email}</p>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#92400E' }}>{user?.username || 'Usuario'}</h2>
+          <p style={{ color: '#92400E' }}>{user?.phone}</p>
           <p style={{ fontSize: '0.875rem', color: '#92400E', marginTop: '0.5rem' }}>Member since {user?.createdAt ? formatDate(user.createdAt) : 'N/A'}</p>
         </div>
       </div>
@@ -53,11 +60,11 @@ export default function Perfil() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
           <div style={{ background: 'white', padding: '1rem', borderRadius: '1rem', textAlign: 'center' }}>
             <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>QUC Balance</p>
-            <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#F59E0B' }}>{user?.quc.toFixed(2)}</p>
+            <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#F59E0B' }}>{user?.quc?.toFixed(2)}</p>
           </div>
           <div style={{ background: 'white', padding: '1rem', borderRadius: '1rem', textAlign: 'center' }}>
             <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>Minerales</p>
-            <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8B5CF6' }}>{user?.minerales.toFixed(2)}</p>
+            <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8B5CF6' }}>{user?.minerales?.toFixed(2)}</p>
           </div>
         </div>
 
@@ -85,18 +92,9 @@ export default function Perfil() {
         <div style={{ background: 'white', borderRadius: '1rem', padding: '1rem', marginBottom: '1rem' }}>
           <h3 style={{ fontWeight: 'bold', marginBottom: '1rem' }}>🔗 Información de Referidos</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#6B7280' }}>Tu código:</span><span style={{ fontWeight: 'bold', color: '#2563EB' }}>{user?.referralCode}</span></div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#6B7280' }}>Ganancias:</span><span style={{ fontWeight: 'bold', color: '#10B981' }}>{user?.referralEarnings.toFixed(2)} QUC</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#6B7280' }}>Tu código:</span><span style={{ fontWeight: 'bold', color: '#2563FB' }}>{user?.referralCode}</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#6B7280' }}>Ganancias:</span><span style={{ fontWeight: 'bold', color: '#10B981' }}>{user?.referralEarnings?.toFixed(2)} QUC</span></div>
             {user?.referredBy && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#6B7280' }}>Te unió:</span><span style={{ fontWeight: 'bold' }}>{user.referredBy}</span></div>}
-          </div>
-        </div>
-
-        <div style={{ background: 'white', borderRadius: '1rem', padding: '1rem' }}>
-          <h3 style={{ fontWeight: 'bold', marginBottom: '1rem' }}>⚙️ Configuración</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {['🔔 Notificaciones', '🔒 Seguridad', '❓ Ayuda'].map(text => (
-              <button key={text} style={{ width: '100%', padding: '0.75rem', background: '#E5E7EB', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', textAlign: 'left' }}>{text}</button>
-            ))}
           </div>
         </div>
 

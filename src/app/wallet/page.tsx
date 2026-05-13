@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const DEMO_USER_ID = 'demo-user-123';
-
 interface User {
   id: string;
   username: string;
+  phone: string;
   quc: number;
+  minerales: number;
+  referralCode: string;
 }
 
 export default function Wallet() {
@@ -20,30 +21,42 @@ export default function Wallet() {
   const pathname = usePathname();
 
   useEffect(() => {
-    fetch(`/api/user?userId=${DEMO_USER_ID}`).then(res => res.json()).then(data => { setUser(data); setLoading(false); });
+    const savedUser = localStorage.getItem('assetMinerUser');
+    if (savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+      } catch (e) {
+        localStorage.removeItem('assetMinerUser');
+      }
+    }
+    setLoading(false);
   }, []);
 
-  const handleDeposit = async () => {
-    const value = parseFloat(amount);
-    if (isNaN(value) || value <= 0) { alert('Cantidad inválida'); return; }
-    setProcessing('deposit');
-    const res = await fetch('/api/user', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'deposit', userId: DEMO_USER_ID, amount: value }) });
-    const result = await res.json();
-    alert(result.message); if (result.success) { const res = await fetch(`/api/user?userId=${DEMO_USER_ID}`); setUser(await res.json()); setAmount(''); }
-    setProcessing(null);
+  const updateUser = (updatedUser: User) => {
+    localStorage.setItem('assetMinerUser', JSON.stringify(updatedUser));
+    setUser(updatedUser);
   };
 
-  const handleWithdraw = async () => {
+  const handleDeposit = () => {
+    if (!user) return;
     const value = parseFloat(amount);
     if (isNaN(value) || value <= 0) { alert('Cantidad inválida'); return; }
-    if (value > (user?.quc || 0)) { alert('QUC insuficiente'); return; }
-    setProcessing('withdraw');
-    const res = await fetch('/api/user', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'withdraw', userId: DEMO_USER_ID, amount: value }) });
-    const result = await res.json();
-    alert(result.message); if (result.success) { const res = await fetch(`/api/user?userId=${DEMO_USER_ID}`); setUser(await res.json()); setAmount(''); }
-    setProcessing(null);
+    const updatedUser = { ...user, quc: user.quc + value };
+    updateUser(updatedUser);
+    setAmount('');
+    alert(`Depósito de ${value} QUC realizado`);
+  };
+
+  const handleWithdraw = () => {
+    if (!user) return;
+    const value = parseFloat(amount);
+    if (isNaN(value) || value <= 0) { alert('Cantidad inválida'); return; }
+    if (value > user.quc) { alert('QUC insuficiente'); return; }
+    const updatedUser = { ...user, quc: user.quc - value };
+    updateUser(updatedUser);
+    setAmount('');
+    alert(`Retiro de ${value} QUC procesado`);
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:'#FEFCE8'}}><p>Cargando...</p></div>;
@@ -71,9 +84,6 @@ export default function Wallet() {
               {processing === 'deposit' ? '...' : 'Depositar'}
             </button>
           </div>
-          <div className="flex gap-2 mt-3">{[100, 500, 1000, 5000].map(v => (
-            <button key={v} onClick={() => setAmount(v.toString())} style={{ padding: '0.5rem', fontSize: '0.875rem', background: '#E5E7EB', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>+{v}</button>
-          ))}</div>
         </div>
 
         <div style={{ background: 'white', borderRadius: '1rem', padding: '1rem' }}>

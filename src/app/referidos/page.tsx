@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const DEMO_USER_ID = 'demo-user-123';
-
 interface User {
   referralCode: string;
   referredBy: string | null;
@@ -18,7 +16,16 @@ export default function Referidos() {
   const pathname = usePathname();
 
   useEffect(() => {
-    fetch(`/api/user?userId=${DEMO_USER_ID}`).then(res => res.json()).then(data => { setUser(data); setLoading(false); });
+    const savedUser = localStorage.getItem('assetMinerUser');
+    if (savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+      } catch (e) {
+        localStorage.removeItem('assetMinerUser');
+      }
+    }
+    setLoading(false);
   }, []);
 
   const copyToClipboard = () => {
@@ -48,7 +55,7 @@ export default function Referidos() {
           <h3 style={{ fontWeight: 'bold', marginBottom: '1rem' }}>💰 Ganancias por Referidos</h3>
           <div style={{ textAlign: 'center', padding: '1rem', background: '#ECFDF5', borderRadius: '0.5rem' }}>
             <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>Total ganado</p>
-            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#10B981' }}>{user?.referralEarnings.toFixed(2) || 0} QUC</p>
+            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#10B981' }}>{user?.referralEarnings?.toFixed(2) || 0} QUC</p>
           </div>
         </div>
 

@@ -4,11 +4,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const DEMO_USER_ID = 'demo-user-123';
-
 interface User {
   id: string;
   username: string;
+  phone: string;
   quc: number;
   minerales: number;
 }
@@ -21,22 +20,23 @@ export default function Tienda() {
   const [sellAmount, setSellAmount] = useState('');
   const pathname = usePathname();
 
-  const fetchUser = async () => {
-    try {
-      const res = await fetch(`/api/user?userId=${DEMO_USER_ID}`);
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data);
+  useEffect(() => {
+    const savedUser = localStorage.getItem('assetMinerUser');
+    if (savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+      } catch (e) {
+        localStorage.removeItem('assetMinerUser');
       }
-    } catch (error) {
-      console.error('Error:', error);
     }
     setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchUser();
   }, []);
+
+  const updateUser = (updatedUser: User) => {
+    localStorage.setItem('assetMinerUser', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
 
   const minePrices: Record<string, number> = {
     basic: 50, intermediate: 250, professional: 600, elite: 1500, diamond: 3500,
@@ -56,39 +56,58 @@ export default function Tienda() {
     elite: 'Minero Elite', diamond: 'Minero Diamante',
   };
 
-  const handleBuy = async (type: 'mine' | 'miner', id: string) => {
-    setProcessing(id);
-    try {
-      const action = type === 'mine' ? 'buyMine' : 'buyMiner';
-      const res = await fetch('/api/user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, userId: DEMO_USER_ID, [type === 'mine' ? 'mineType' : 'minerType']: id }),
-      });
-      const result = await res.json();
-      alert(result.message);
-      if (result.success) fetchUser();
-    } catch (error) {
-      alert('Error al comprar');
+  const handleBuy = (type: 'mine' | 'miner', id: string) => {
+    if (!user) return;
+    
+    const cost = type === 'mine' ? minePrices[id] : minerPrices[id];
+    if (user.quc < cost) {
+      alert('QUC insuficiente');
+      return;
     }
-    setProcessing(null);
+
+    const updatedUser = { ...user, quc: user.quc - cost };
+    
+    if (type === 'mine') {
+      const newMine = { 
+        id: 'mine-' + Date.now(), 
+        mineId: id, 
+        name: mineNames[id], 
+        level: 1, 
+        productionPerSecond: id === 'basic' ? 0.5 : id === 'intermediate' ? 3 : id === 'professional' ? 7 : id === 'elite' ? 20 : 50, 
+        minerGroups: 0, 
+        lastUpdate: Date.now() 
+      };
+      updatedUser.mines = [...(user.mines || []), newMine];
+    } else {
+      const newMiner = { 
+        id: 'miner-' + Date.now(), 
+        name: minerNames[id], 
+        type: id, 
+        production: cost / 10, 
+        cost 
+      };
+      updatedUser.miners = [...(user.miners || []), newMiner];
+    }
+    
+    updateUser(updatedUser);
+    alert(type === 'mine' ? 'Mina comprada!' : 'Minero comprado!');
   };
 
-  const handleSell = async () => {
+  const handleSell = () => {
+    if (!user) return;
     const amount = parseFloat(sellAmount);
-    if (isNaN(amount) || amount <= 0) { alert('Cantidad inválida'); return; }
-    setProcessing('sell');
-    try {
-      const res = await fetch('/api/user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'sellMinerales', userId: DEMO_USER_ID, amount }),
-      });
-      const result = await res.json();
-      alert(result.message);
-      if (result.success) { fetchUser(); setSellAmount(''); }
-    } catch (error) { alert('Error al vender'); }
-    setProcessing(null);
+    if (isNaN(amount) || amount <= 0 || amount > user.minerales) {
+      alert('Cantidad inválida');
+      return;
+    }
+    const updatedUser = { 
+      ...user, 
+      minerales: user.minerales - amount, 
+      quc: user.quc + (amount * 0.10) 
+    };
+    updateUser(updatedUser);
+    setSellAmount('');
+    alert(`Vendiste ${amount} minerales por ${(amount * 0.10).toFixed(2)} QUC`);
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:'#FEFCE8'}}><p>Cargando...</p></div>;
