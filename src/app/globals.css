@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #F59E0B;        /* Golden amber */
+  --primary-dark: #D97706;
+  --secondary: #3B82F6;      /* Sky blue */
+  --secondary-dark: #2563EB;
+  --background: #FEFCE8;      /* Light cream */
+  --surface: #FFFFFF;
+  --text: #1F2937;
+  --text-light: #6B7280;
+  --success: #10B981;
+  --danger: #EF4444;
+  --minerales: #8B5CF6;      /* Purple for minerals */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Mining theme colors */
+.bg-mining-primary {
+  background-color: var(--primary);
+}
+
+.bg-mining-secondary {
+  background-color: var(--secondary);
+}
+
+.bg-mining-surface {
+  background-color: var(--surface);
+}
+
+.text-mining-primary {
+  color: var(--primary);
+}
+
+.text-minerales {
+  color: var(--minerales);
+}
+
+/* Bottom navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #E5E7EB;
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem;
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  color: #9CA3AF;
+  font-size: 0.75rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.bottom-nav-item.active {
+  color: var(--primary);
+}
+
+.bottom-nav-item svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Card styles */
+.card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Button styles */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+/* Mine card */
+.mine-card {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border: 2px solid var(--primary);
+  border-radius: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.mine-card-level {
+  background: var(--primary);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  display: inline-block;
+}
+
+/* Store items */
+.store-item {
+  background: white;
+  border: 2px solid #E5E7EB;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.store-item:hover {
+  border-color: var(--primary);
+}
+
+/* Progress bar for production */
+.progress-bar {
+  background: #E5E7EB;
+  border-radius: 9999px;
+  height: 0.5rem;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  background: var(--success);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* Main content padding for bottom nav */
+.main-content {
+  padding-bottom: 5rem;
+}
