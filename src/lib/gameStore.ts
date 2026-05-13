@@ -116,8 +116,55 @@ function generateReferralCode(): string {
 // In-memory storage (fallback when no database)
 const users: Map<string, User> = new Map();
 
+// Create demo user if not exists
+function ensureDemoUser() {
+  const demoPhone = 'demo';
+  if (!users.has('demo-user')) {
+    const demoUser: User = {
+      id: 'demo-user',
+      username: 'Demo Player',
+      phone: demoPhone,
+      quc: 500,
+      minerales: 100,
+      referralCode: 'DEMO123',
+      referredBy: null,
+      referralEarnings: 0,
+      miners: [],
+      mines: [
+        {
+          id: 'mine-1',
+          mineId: 'basic',
+          name: 'Mina Básica',
+          level: 1,
+          productionPerSecond: 0.5,
+          minerGroups: 0,
+          lastUpdate: Date.now(),
+        },
+        {
+          id: 'mine-2',
+          mineId: 'intermediate',
+          name: 'Mina Intermedia',
+          level: 1,
+          productionPerSecond: 3,
+          minerGroups: 0,
+          lastUpdate: Date.now(),
+        },
+      ],
+      createdAt: Date.now(),
+    };
+    users.set('demo-user', demoUser);
+  }
+}
+
+// Initialize demo user on module load
+ensureDemoUser();
+
 // Get or create user (by phone)
 export function getOrCreateUser(username: string, phone: string, referralCode?: string): User {
+  // For demo user, return the demo user
+  if (phone === 'demo' || phone === 'demo123') {
+    return users.get('demo-user')!;
+  }
   // Check if user exists by phone
   let user = Array.from(users.values()).find(u => u.phone === phone);
   
