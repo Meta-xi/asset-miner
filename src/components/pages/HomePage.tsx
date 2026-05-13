@@ -20,10 +20,12 @@ interface Props {
 // Get mineral icon based on mineId
 function getMineralIcon(mineId: string): string {
   const id = mineId.toLowerCase();
-  if (id === 'oro') return '/images/minerals/oro.webp';
-  if (id === 'carbon') return '/images/minerals/carbon.webp';
-  if (id === 'rubi') return '/images/minerals/rubi.webp';
-  if (id === 'esmeralda') return '/images/minerals/esmeralda.webp';
+  // Use absolute URLs for Vercel
+  const baseUrl = 'https://asset-miner-rho.vercel.app';
+  if (id === 'oro') return `${baseUrl}/images/minerals/oro.webp`;
+  if (id === 'carbon') return `${baseUrl}/images/minerals/carbon.webp`;
+  if (id === 'rubi') return `${baseUrl}/images/minerals/rubi.webp`;
+  if (id === 'esmeralda') return `${baseUrl}/images/minerals/esmeralda.webp`;
   return '💎';
 }
 
@@ -76,10 +78,12 @@ function MineEarnings({ mine }: { mine: any }) {
 // Get mine image based on mineId - uses custom images from user
 function getMineImage(mineId: string): string | null {
   const id = mineId.toLowerCase();
-  if (id === 'oro') return '/images/mines/oro.webp';
-  if (id === 'carbon') return '/images/mines/carbon.webp';
-  if (id === 'rubi') return '/images/mines/rubi.webp';
-  if (id === 'esmeralda') return '/images/mines/esmeralda.webp';
+  // Use absolute URLs for Vercel
+  const baseUrl = 'https://asset-miner-rho.vercel.app';
+  if (id === 'oro') return `${baseUrl}/images/mines/oro.webp`;
+  if (id === 'carbon') return `${baseUrl}/images/mines/carbon.webp`;
+  if (id === 'rubi') return `${baseUrl}/images/mines/rubi.webp`;
+  if (id === 'esmeralda') return `${baseUrl}/images/mines/esmeralda.webp`;
   return null;
 }
 
