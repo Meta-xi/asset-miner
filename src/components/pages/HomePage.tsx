@@ -73,13 +73,21 @@ function MineEarnings({ mine }: { mine: any }) {
   );
 }
 
-// Get mine image based on mine name
+// Get mine image based on mine name - uses custom images from user
 function getMineImage(mineName: string): string | null {
   const name = mineName.toLowerCase();
-  if (name.includes('oro')) return '/images/mines/oro.webp';
-  if (name.includes('carbón') || name.includes('carbon')) return '/images/mines/carbon.webp';
+  console.log('[MineImage] Checking mineName:', mineName, '-> lowercase:', name);
+  if (name.includes('oro')) {
+    console.log('[MineImage] Matched oro, returning /images/mines/oro.webp');
+    return '/images/mines/oro.webp';
+  }
+  if (name.includes('carbón') || name.includes('carbon')) {
+    console.log('[MineImage] Matched carbon, returning /images/mines/carbon.webp');
+    return '/images/mines/carbon.webp';
+  }
   if (name.includes('rubí') || name.includes('rubi')) return '/images/mines/rubi.webp';
   if (name.includes('esmeralda')) return '/images/mines/esmeralda.webp';
+  console.log('[MineImage] No match, returning null');
   return null;
 }
 
