@@ -17,20 +17,20 @@ interface Props {
   refreshUser: () => void;
 }
 
-// Get mineral icon based on mine name
-function getMineralIcon(mineName: string): string {
-  const name = mineName.toLowerCase();
-  if (name.includes('oro')) return '/images/minerals/oro.webp';
-  if (name.includes('carbón') || name.includes('carbon')) return '/images/minerals/carbon.webp';
-  if (name.includes('rubí') || name.includes('rubi')) return '/images/minerals/rubi.webp';
-  if (name.includes('esmeralda')) return '/images/minerals/esmeralda.webp';
+// Get mineral icon based on mineId
+function getMineralIcon(mineId: string): string {
+  const id = mineId.toLowerCase();
+  if (id === 'oro') return '/images/minerals/oro.webp';
+  if (id === 'carbon') return '/images/minerals/carbon.webp';
+  if (id === 'rubi') return '/images/minerals/rubi.webp';
+  if (id === 'esmeralda') return '/images/minerals/esmeralda.webp';
   return '💎';
 }
 
 // Component for real-time earnings display per mine
 function MineEarnings({ mine }: { mine: any }) {
   const [earnings, setEarnings] = useState(0);
-  const mineralIcon = getMineralIcon(mine.name);
+  const mineralIcon = getMineralIcon(mine.mineId);
   
   useEffect(() => {
     // Calculate production per second for this mine
@@ -73,27 +73,19 @@ function MineEarnings({ mine }: { mine: any }) {
   );
 }
 
-// Get mine image based on mine name - uses custom images from user
-function getMineImage(mineName: string): string | null {
-  const name = mineName.toLowerCase();
-  console.log('[MineImage] Checking mineName:', mineName, '-> lowercase:', name);
-  if (name.includes('oro')) {
-    console.log('[MineImage] Matched oro, returning /images/mines/oro.webp');
-    return '/images/mines/oro.webp';
-  }
-  if (name.includes('carbón') || name.includes('carbon')) {
-    console.log('[MineImage] Matched carbon, returning /images/mines/carbon.webp');
-    return '/images/mines/carbon.webp';
-  }
-  if (name.includes('rubí') || name.includes('rubi')) return '/images/mines/rubi.webp';
-  if (name.includes('esmeralda')) return '/images/mines/esmeralda.webp';
-  console.log('[MineImage] No match, returning null');
+// Get mine image based on mineId - uses custom images from user
+function getMineImage(mineId: string): string | null {
+  const id = mineId.toLowerCase();
+  if (id === 'oro') return '/images/mines/oro.webp';
+  if (id === 'carbon') return '/images/mines/carbon.webp';
+  if (id === 'rubi') return '/images/mines/rubi.webp';
+  if (id === 'esmeralda') return '/images/mines/esmeralda.webp';
   return null;
 }
 
 // Mine image component with custom images
-function MineImage({ mineName }: { mineName: string }) {
-  const imagePath = getMineImage(mineName);
+function MineImage({ mineId, mineName }: { mineId: string; mineName: string }) {
+  const imagePath = getMineImage(mineId);
   
   if (imagePath) {
     return (
@@ -244,7 +236,7 @@ export default function HomePage({ user, refreshUser }: Props) {
           user.mines.map((mine: any) => (
             <div key={mine.id} className="mine-card-new">
               {/* 1. Foto de la mina */}
-              <MineImage mineName={mine.name} />
+              <MineImage mineId={mine.mineId} mineName={mine.name} />
               
               {/* 2. Nombre (Mina de ***) */}
               <div className="flex justify-between items-center mb-3">
